@@ -103,38 +103,8 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        tvLicenseBadge.setOnClickListener {
-            showVpsUrlDialog()
-        }
-
         verifyLicense()
         setupRealtimeWebSocket()
-    }
-
-    private fun showVpsUrlDialog() {
-        val input = EditText(this)
-        input.setText(ApiClient.vpsServerUrl)
-        input.setPadding(40, 30, 40, 30)
-
-        AlertDialog.Builder(this)
-            .setTitle("🌐 Set VPS Server URL")
-            .setMessage("Enter your Server IP/Domain (e.g. http://192.168.1.10:3000 or https://api.yourdomain.com):")
-            .setView(input)
-            .setPositiveButton("Save & Reconnect") { dialog, _ ->
-                val newUrl = input.text.toString().trim()
-                if (newUrl.isNotEmpty()) {
-                    ApiClient.vpsServerUrl = newUrl
-                    val prefs = getSharedPreferences("vps_prefs", Context.MODE_PRIVATE)
-                    prefs.edit().putString("vps_url", newUrl).apply()
-                    Toast.makeText(this, "VPS URL Updated: $newUrl", Toast.LENGTH_SHORT).show()
-                    ApiClient.disconnectWebSocket()
-                    setupRealtimeWebSocket()
-                    verifyLicense()
-                }
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-            .show()
     }
 
     private fun setupRealtimeWebSocket() {
