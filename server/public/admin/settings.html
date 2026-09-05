@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocationSpoofer - Admin Settings & Config</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f6fc;
+            color: #1e293b;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1.5px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 1.75rem 1.25rem;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-bottom: 2.25rem;
+            padding-left: 0.5rem;
+        }
+        .sidebar-brand img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+        }
+        .sidebar-brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #2563eb;
+            line-height: 1.1;
+        }
+        .sidebar-brand-sub {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-item-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .nav-item-link:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .nav-item-link.active {
+            background: #eeeffc;
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 1rem 0 1.5rem 0;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+        .btn-logout-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .btn-logout-sidebar:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Main Content Wrapper */
+        .main-wrapper {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+            max-width: 1350px;
+        }
+
+        .card-custom {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-custom {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar">
+        <a href="/admin/dashboard" class="sidebar-brand">
+            <img src="/admin/logo.png" alt="LocationSpoofer Logo">
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-title">LocationSpoofer</span>
+                <span class="sidebar-brand-sub">Admin</span>
+            </div>
+        </a>
+
+        <div class="nav-menu">
+            <a href="/admin/dashboard" class="nav-item-link">
+                <i class="bi bi-grid-fill"></i> Dashboard
+            </a>
+            <a href="/admin/devices" class="nav-item-link">
+                <i class="bi bi-phone-fill"></i> Devices
+            </a>
+            <a href="/admin/logs" class="nav-item-link">
+                <i class="bi bi-journal-text"></i> Activity Logs
+            </a>
+            <a href="/admin/settings" class="nav-item-link active">
+                <i class="bi bi-gear-fill"></i> Settings
+            </a>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout-sidebar" id="logoutBtn">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Right Wrapper -->
+    <main class="main-wrapper">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">⚙️ System & Server Settings</h2>
+                <p class="text-muted small mb-0">Visually configure VPS Server Variables, SMTP Email Credentials, and Admin Password.</p>
+            </div>
+            <button id="saveAllBtn" class="btn btn-primary btn-custom"><i class="bi bi-floppy-fill me-1"></i> Save All Settings</button>
+        </div>
+
+        <div id="alertBox" class="alert d-none rounded-3 mb-4" role="alert"></div>
+
+        <form id="settingsForm">
+            <!-- 1. SMTP Email Credentials Card -->
+            <div class="card-custom">
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-envelope-at-fill text-primary me-2"></i> 📨 SMTP Email Credentials (.env Config)</h5>
+                    <button type="button" id="testSmtpBtn" class="btn btn-outline-primary btn-sm rounded-3 fw-bold"><i class="bi bi-send-fill me-1"></i> Test SMTP Email</button>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">SMTP Host Server</label>
+                            <input type="text" id="smtp_host" class="form-control" placeholder="smtp.gmail.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SMTP Port</label>
+                            <input type="number" id="smtp_port" class="form-control" placeholder="587">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">SMTP Username / Email</label>
+                            <input type="email" id="smtp_user" class="form-control" placeholder="your-email@gmail.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">SMTP App Password</label>
+                            <input type="password" id="smtp_pass" class="form-control" placeholder="••••••••••••••••">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">SMTP Sender Address (From)</label>
+                            <input type="text" id="smtp_from" class="form-control" placeholder="LocationSpoofer Admin <no-reply@locationsofi.com>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Security & Admin Credentials Card -->
+            <div class="card-custom">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-lock-fill text-primary me-2"></i> 🔑 Admin Password & Security</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label">JWT Token Secret Key (`JWT_SECRET`)</label>
+                            <input type="text" id="jwt_secret" class="form-control" placeholder="locationsofi_super_secret_jwt_key_2026">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Current Admin Password (Required to Change Password)</label>
+                            <input type="password" id="current_password" class="form-control" placeholder="Current Password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">New Admin Password</label>
+                            <input type="password" id="new_password" class="form-control" placeholder="New Password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. License & VPS Defaults Card -->
+            <div class="card-custom">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-cpu-fill text-primary me-2"></i> 🛰️ License & VPS Server Defaults</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Default New Device License Status</label>
+                            <select id="default_device_status" class="form-select">
+                                <option value="PENDING">PENDING (Approval Needed)</option>
+                                <option value="APPROVED">AUTO APPROVED (Active)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Default License Expiry Presets (Days)</label>
+                            <input type="number" id="default_expiry_days" class="form-control" placeholder="30">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/settings.js"></script>
+</body>
+</html>

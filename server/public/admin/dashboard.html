@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocationSpoofer - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f6fc;
+            color: #1e293b;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1.5px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 1.75rem 1.25rem;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-bottom: 2.25rem;
+            padding-left: 0.5rem;
+        }
+        .sidebar-brand img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+        }
+        .sidebar-brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #2563eb;
+            line-height: 1.1;
+        }
+        .sidebar-brand-sub {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-item-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .nav-item-link:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .nav-item-link.active {
+            background: #eeeffc;
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .nav-item-link i {
+            font-size: 1.15rem;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 1rem 0 1.5rem 0;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+        .status-filter-item:hover {
+            background: #f8fafc;
+        }
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-approved { background: #10b981; }
+        .dot-pending { background: #f59e0b; }
+        .dot-blocked { background: #ef4444; }
+        .dot-expired { background: #94a3b8; }
+
+        .filter-badge {
+            margin-left: auto;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+        .btn-logout-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .btn-logout-sidebar:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Main Content Layout */
+        .main-wrapper {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+            max-width: 1450px;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .header-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .header-subtitle {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .icon-btn-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 1.15rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+        .icon-btn-circle:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #2563eb;
+        }
+
+        /* 5 Top Metric Cards Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1.25rem 1.35rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            right: -25px;
+            bottom: -25px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.65;
+        }
+        .card-total::after { background: #dbeafe; }
+        .card-approved::after { background: #a7f3d0; }
+        .card-pending::after { background: #fde68a; }
+        .card-blocked::after { background: #fca5a5; }
+        .card-expired::after { background: #e2e8f0; }
+
+        .metric-card-header {
+            font-size: 0.775rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+        .card-total .metric-card-header { color: #4338ca; }
+        .card-approved .metric-card-header { color: #047857; }
+        .card-pending .metric-card-header { color: #d97706; }
+        .card-blocked .metric-card-header { color: #dc2626; }
+        .card-expired .metric-card-header { color: #475569; }
+
+        .metric-card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+            z-index: 1;
+        }
+        .metric-number {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .card-total .metric-number { color: #1e1b4b; }
+        .card-approved .metric-number { color: #065f46; }
+        .card-pending .metric-number { color: #b45309; }
+        .card-blocked .metric-number { color: #991b1b; }
+        .card-expired .metric-number { color: #334155; }
+
+        .metric-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Charts Row Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1.3fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        /* Table Cards Styling */
+        .card-custom {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-view-more {
+            background: #eeeffc;
+            color: #2563eb;
+            border: none;
+            border-radius: 12px;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-view-more:hover {
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+        }
+
+        .table {
+            color: #1e293b;
+            margin-bottom: 0;
+        }
+        .table thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.775rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: 1rem 1.25rem;
+        }
+        .table tbody td {
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.925rem;
+        }
+
+        .hwid-code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: #0284c7;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge-pill {
+            padding: 0.4em 0.85em;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-block;
+        }
+        .badge-APPROVED { background-color: #dcfce7; color: #166534; }
+        .badge-PENDING { background-color: #fef3c7; color: #92400e; }
+        .badge-BLOCKED { background-color: #fee2e2; color: #991b1b; }
+        .badge-EXPIRED { background-color: #f1f5f9; color: #475569; }
+
+        .btn-act {
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.35rem 0.65rem;
+            border: 1.5px solid;
+            background: #ffffff;
+            transition: all 0.15s ease;
+        }
+        .btn-act-edit { color: #2563eb; border-color: #93c5fd; }
+        .btn-act-edit:hover { background: #2563eb; color: #ffffff; }
+
+        .btn-act-approve { color: #16a34a; border-color: #86efac; }
+        .btn-act-approve:hover { background: #16a34a; color: #ffffff; }
+
+        .btn-act-block { color: #dc2626; border-color: #fca5a5; }
+        .btn-act-block:hover { background: #dc2626; color: #ffffff; }
+
+        .btn-act-loc { color: #0284c7; border-color: #7dd3fc; }
+        .btn-act-loc:hover { background: #0284c7; color: #ffffff; }
+
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 1200px) {
+            .metric-grid { grid-template-columns: repeat(3, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-wrapper { margin-left: 0; padding: 1rem; }
+            .metric-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <a href="/admin/dashboard" class="sidebar-brand">
+            <img src="/admin/logo.png" alt="LocationSpoofer Logo">
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-title">LocationSpoofer</span>
+                <span class="sidebar-brand-sub">Admin</span>
+            </div>
+        </a>
+
+        <div class="nav-menu">
+            <a href="/admin/dashboard" class="nav-item-link active">
+                <i class="bi bi-grid-fill"></i> Dashboard
+            </a>
+            <a href="/admin/devices" class="nav-item-link">
+                <i class="bi bi-phone-fill"></i> Devices
+            </a>
+            <a href="/admin/logs" class="nav-item-link">
+                <i class="bi bi-journal-text"></i> Activity Logs
+            </a>
+            <a href="/admin/settings" class="nav-item-link">
+                <i class="bi bi-gear-fill"></i> Settings
+            </a>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-title">
+            <span>Device Status</span>
+            <i class="bi bi-chevron-up"></i>
+        </div>
+
+        <div class="status-filter-item" onclick="window.location.href='/admin/devices?status=APPROVED'">
+            <span class="status-dot dot-approved"></span> Approved
+        </div>
+        <div class="status-filter-item" onclick="window.location.href='/admin/devices?status=PENDING'">
+            <span class="status-dot dot-pending"></span> Pending Approval
+            <span class="filter-badge" id="sidebarPendingBadge">+0</span>
+        </div>
+        <div class="status-filter-item" onclick="window.location.href='/admin/devices?status=BLOCKED'">
+            <span class="status-dot dot-blocked"></span> Blocked
+        </div>
+        <div class="status-filter-item" onclick="window.location.href='/admin/devices?status=EXPIRED'">
+            <span class="status-dot dot-expired"></span> Expired
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout-sidebar" id="logoutBtn">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Right Wrapper -->
+    <main class="main-wrapper">
+        <!-- Top Greeting Header Bar -->
+        <div class="top-header">
+            <div>
+                <h2 class="header-title">Hi Admin</h2>
+                <p class="header-subtitle">Good Morning!</p>
+            </div>
+            <div class="header-actions">
+                <div class="icon-btn-circle" title="Messages"><i class="bi bi-chat-left-dots"></i></div>
+                <div class="icon-btn-circle" title="Notifications"><i class="bi bi-bell"></i></div>
+                <button class="btn btn-outline-primary btn-sm rounded-3 font-semibold ms-2" id="refreshBtn"><i class="bi bi-arrow-clockwise me-1"></i> Refresh</button>
+            </div>
+        </div>
+
+        <!-- Top 5 Metric Cards Grid -->
+        <div class="metric-grid">
+            <div class="metric-card card-total">
+                <div class="metric-card-header">TOTAL REGISTERED</div>
+                <div class="metric-card-body">
+                    <div class="metric-number" id="statTotal">0</div>
+                    <div class="metric-icon-box text-primary"><i class="bi bi-people-fill"></i></div>
+                </div>
+            </div>
+            <div class="metric-card card-approved">
+                <div class="metric-card-header">ACTIVE APPROVED</div>
+                <div class="metric-card-body">
+                    <div class="metric-number" id="statApproved">0</div>
+                    <div class="metric-icon-box text-success"><i class="bi bi-check-circle-fill"></i></div>
+                </div>
+            </div>
+            <div class="metric-card card-pending">
+                <div class="metric-card-header">PENDING APPROVAL</div>
+                <div class="metric-card-body">
+                    <div class="metric-number" id="statPending">0</div>
+                    <div class="metric-icon-box text-warning"><i class="bi bi-clock-fill"></i></div>
+                </div>
+            </div>
+            <div class="metric-card card-blocked">
+                <div class="metric-card-header">BLOCKED DEVICES</div>
+                <div class="metric-card-body">
+                    <div class="metric-number" id="statBlocked">0</div>
+                    <div class="metric-icon-box text-danger"><i class="bi bi-slash-circle-fill"></i></div>
+                </div>
+            </div>
+            <div class="metric-card card-expired">
+                <div class="metric-card-header">EXPIRED LICENSES</div>
+                <div class="metric-card-body">
+                    <div class="metric-number" id="statExpired">0</div>
+                    <div class="metric-icon-box text-secondary"><i class="bi bi-calendar-event-fill"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Charts Row -->
+        <div class="charts-grid">
+            <!-- Left: Device Activity Line Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title">Device Activity</h5>
+                    <select class="form-select form-select-sm rounded-3 border-0 bg-light text-muted fw-semibold" style="width: 140px;">
+                        <option>Last 30 Days</option>
+                        <option>Last 7 Days</option>
+                        <option>This Year</option>
+                    </select>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="activityLineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right: Status Distribution Donut Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title">Status Distribution</h5>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div style="width: 160px; height: 160px; position: relative;">
+                        <canvas id="statusDonutChart"></canvas>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div class="fw-extrabold fs-4 text-dark" id="donutTotalText">0</div>
+                            <div style="font-size: 0.675rem;" class="text-muted text-uppercase fw-bold">Total Devices</div>
+                        </div>
+                    </div>
+
+                    <!-- Legend list -->
+                    <div style="flex: 1; padding-left: 1.5rem;" class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center justify-content-between small fw-semibold">
+                            <span class="d-flex align-items-center gap-2"><span class="status-dot dot-approved"></span> Approved</span>
+                            <span id="legendApproved" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between small fw-semibold">
+                            <span class="d-flex align-items-center gap-2"><span class="status-dot dot-pending"></span> Pending Approval</span>
+                            <span id="legendPending" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between small fw-semibold">
+                            <span class="d-flex align-items-center gap-2"><span class="status-dot dot-blocked"></span> Blocked</span>
+                            <span id="legendBlocked" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between small fw-semibold">
+                            <span class="d-flex align-items-center gap-2"><span class="status-dot dot-expired"></span> Expired</span>
+                            <span id="legendExpired" class="fw-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Mobile Devices Card (Top 10 Recent Limit) -->
+        <div class="card-custom mb-4">
+            <div class="card-header bg-white border-bottom py-3.5 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="table-title"><i class="bi bi-phone text-primary"></i> Registered Mobile Devices <small class="text-muted font-normal fs-6 ms-2">(Top 10 Recent)</small></h5>
+                <a href="/admin/devices" class="btn-view-more">View All Devices <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>USER TAG / NAME</th>
+                                <th>HARDWARE DEVICE ID (HWID)</th>
+                                <th>STATUS</th>
+                                <th>EXPIRY DATE</th>
+                                <th>REMOTE COORDINATES</th>
+                                <th>LAST SEEN</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody">
+                            <tr><td colspan="8" class="text-center py-4 text-muted">Loading devices...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Logs Card (Top 10 Recent Limit) -->
+        <div class="card-custom mb-4">
+            <div class="card-header bg-white border-bottom py-3.5 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="table-title"><i class="bi bi-journal-text text-primary"></i> Recent System Activity Logs <small class="text-muted font-normal fs-6 ms-2">(Top 10 Recent)</small></h5>
+                <a href="/admin/logs" class="btn-view-more">View All Activity Logs <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>TIMESTAMP</th>
+                                <th>ACTION</th>
+                                <th>DETAILS</th>
+                                <th>PERFORMED BY</th>
+                                <th>IP ADDRESS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Loading activity logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Device Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">Edit License & Access</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editDeviceId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">User Name / Note</label>
+                        <input type="text" id="editUserTag" class="form-control rounded-3">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select id="editStatus" class="form-select rounded-3">
+                            <option value="APPROVED">APPROVED (Active)</option>
+                            <option value="PENDING">PENDING (Approval Needed)</option>
+                            <option value="BLOCKED">BLOCKED (Locked)</option>
+                            <option value="EXPIRED">EXPIRED (License Ended)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">License Quick Expiry Presets</label>
+                        <div class="btn-group w-100 mb-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPresetExpiry(7)">1 Week</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPresetExpiry(30)">1 Month</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPresetExpiry(365)">1 Year</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPresetExpiry(null)">Lifetime</button>
+                        </div>
+                        <input type="datetime-local" id="editExpiryDate" class="form-control rounded-3">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary rounded-3 fw-bold" id="saveEditBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Remote Location Modal -->
+    <div class="modal fade" id="locationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">🛰️ Set Remote Location Override</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="locDeviceId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Latitude</label>
+                        <input type="number" step="any" id="locLat" class="form-control rounded-3" placeholder="28.6139">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Longitude</label>
+                        <input type="number" step="any" id="locLng" class="form-control rounded-3" placeholder="77.2090">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" onclick="clearRemoteLocation()">Clear Override</button>
+                    <button type="button" class="btn btn-success rounded-3 fw-bold" id="saveLocationBtn">Save Coordinates</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/app.js"></script>
+</body>
+</html>

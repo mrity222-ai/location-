@@ -1,0 +1,22 @@
+{
+  "name": "locationsofi-vps-server",
+  "version": "1.0.0",
+  "description": "VPS License Manager and Admin Panel for LocationSpoofer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/api.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^10.0.0",
+    "sqlite3": "^5.1.7",
+    "swagger-ui-express": "^5.0.1",
+    "ws": "^8.21.3"
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "LocationSpoofer VPS License & Remote Control API",
+    "version": "1.0.0",
+    "description": "Interactive API Documentation for LocationSpoofer VPS Control Server, Device Licensing, Remote Location Override, and Activity Logs."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local VPS Control Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/api/device/register": {
+      "post": {
+        "summary": "Register a new mobile device HWID",
+        "tags": ["Client Device"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["hwid"],
+                "properties": {
+                  "hwid": { "type": "string", "example": "DEV-58F9A" },
+                  "user_tag": { "type": "string", "example": "My Test Phone" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Device registration acknowledged" }
+        }
+      }
+    },
+    "/api/device/check-status": {
+      "post": {
+        "summary": "Check device license status & fetch remote coordinates",
+        "tags": ["Client Device"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["hwid"],
+                "properties": {
+                  "hwid": { "type": "string", "example": "DEV-58F9A" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "License status & remote location coordinates" }
+        }
+      }
+    },
+    "/api/admin/login": {
+      "post": {
+        "summary": "Authenticate Admin User & get JWT Token",
+        "tags": ["Admin Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string", "example": "admin" },
+                  "password": { "type": "string", "example": "admin123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "JWT Token issued" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/admin/forgot-password": {
+      "post": {
+        "summary": "Request Password Reset via SMTP Email",
+        "tags": ["Admin Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@locationsofi.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password reset token generated and sent" }
+        }
+      }
+    },
+    "/api/admin/devices": {
+      "get": {
+        "summary": "Fetch all registered devices",
+        "tags": ["Admin Control"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of registered devices" }
+        }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "summary": "Get overview count statistics",
+        "tags": ["Admin Control"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Overview numbers (total, approved, blocked, expired)" }
+        }
+      }
+    },
+    "/api/admin/logs": {
+      "get": {
+        "summary": "Fetch recent 50 activity logs",
+        "tags": ["Admin Control"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Activity log items" }
+        }
+      }
+    },
+    "/api/admin/device/update-status": {
+      "post": {
+        "summary": "Update Device License status & expiry",
+        "tags": ["Admin Control"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "status"],
+                "properties": {
+                  "id": { "type": "integer", "example": 1 },
+                  "status": { "type": "string", "example": "APPROVED" },
+                  "user_tag": { "type": "string", "example": "VIP User" },
+                  "expiry_date": { "type": "string", "example": "2026-12-31T23:59:59Z" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated successfully" }
+        }
+      }
+    },
+    "/api/admin/device/set-location": {
+      "post": {
+        "summary": "Set Remote Location Override for a device",
+        "tags": ["Admin Control"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": { "type": "integer", "example": 1 },
+                  "remote_lat": { "type": "number", "example": 28.6139 },
+                  "remote_lng": { "type": "number", "example": 77.2090 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Remote location override updated & broadcasted via WebSocket" }
+        }
+      }
+    }
+  }
+}

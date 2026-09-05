@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  vps-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: locationsofi-vps-server
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - JWT_SECRET=locationsofi_super_secret_jwt_key_2026
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=
+      - SMTP_PASS=
+      - SMTP_FROM=LocationSpoofer Admin <no-reply@locationsofi.com>
+    volumes:
+      - ./server/vps_license.db:/app/vps_license.db
