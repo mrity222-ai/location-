@@ -133,6 +133,56 @@ async function runTests() {
         const logPageRes = await request('GET', '/admin/logs');
         assert(logPageRes.status === 200, 'GET /admin/logs returns 200 OK');
 
+        // Test 13: User Registration Endpoint
+        console.log('\n🔹 Test 13: User Registration Endpoint');
+        const testUserEmail = `testuser_${Date.now()}@example.com`;
+        const userRegRes = await request('POST', '/api/user/register', {
+            name: 'Test User',
+            email: testUserEmail,
+            password: 'UserPassword123',
+            hwid: 'DEV-TEST-' + Date.now()
+        });
+        assert(userRegRes.status === 200, 'POST /api/user/register returns 200 OK');
+        assert(userRegRes.body && userRegRes.body.token, 'User registration returns auth token');
+
+        // Test 14: User Password Login Endpoint
+        console.log('\n🔹 Test 14: User Password Login Endpoint');
+        const passLoginRes = await request('POST', '/api/user/login-password', {
+            email: testUserEmail,
+            password: 'UserPassword123',
+            hwid: 'DEV-TEST-' + Date.now()
+        });
+        assert(passLoginRes.status === 200, 'POST /api/user/login-password returns 200 OK');
+        assert(passLoginRes.body && passLoginRes.body.token, 'Password login returns token');
+
+        // Test 15: Send OTP Endpoint
+        console.log('\n🔹 Test 15: User Send OTP Endpoint');
+        const sendOtpRes = await request('POST', '/api/user/send-otp', {
+            email: testUserEmail
+        });
+        assert(sendOtpRes.status === 200, 'POST /api/user/send-otp returns 200 OK');
+        const generatedOtp = sendOtpRes.body ? sendOtpRes.body.otp : null;
+
+        // Test 16: OTP Login Endpoint
+        if (generatedOtp) {
+            console.log('\n🔹 Test 16: User OTP Login Endpoint');
+            const otpLoginRes = await request('POST', '/api/user/login-otp', {
+                email: testUserEmail,
+                otp: generatedOtp,
+                hwid: 'DEV-TEST-' + Date.now()
+            });
+            assert(otpLoginRes.body && otpLoginRes.body.token, 'OTP login returns token');
+        }
+
+        // Test 17: User Change Password Endpoint
+        console.log('\n🔹 Test 17: User Change Password Endpoint');
+        const changePassRes = await request('POST', '/api/user/change-password', {
+            email: testUserEmail,
+            current_password: 'UserPassword123',
+            new_password: 'NewTestPassword456!'
+        });
+        assert(changePassRes.status === 200, 'POST /api/user/change-password returns 200 OK');
+
         console.log('\n====================================================');
         console.log(`📊 TEST SUMMARY: ${testsPassed} Passed, ${testsFailed} Failed`);
         console.log('====================================================\n');

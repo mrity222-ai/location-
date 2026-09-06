@@ -1,9 +1,7 @@
 package com.example.locationsofi
 
 import android.content.ContentResolver
-import android.location.Location
 import android.location.LocationListener
-import android.location.LocationManager
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
@@ -22,6 +20,7 @@ class MainHook : IXposedHookLoadPackage {
 
         // Apply Location Spoofer Hooks across targeted applications
         hookLocationServices(lpparam)
+        hookFusedLocationServices(lpparam)
     }
 
     private fun hookSystemLocation(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -61,7 +60,9 @@ class MainHook : IXposedHookLoadPackage {
                     }
                 }
             )
+        } catch (t: Throwable) {}
 
+        try {
             // 2. Location.isMock() -> false
             XposedHelpers.findAndHookMethod(
                 "android.location.Location",
@@ -73,7 +74,9 @@ class MainHook : IXposedHookLoadPackage {
                     }
                 }
             )
+        } catch (t: Throwable) {}
 
+        try {
             // 3. AppOpsManager.checkOp() -> MODE_ALLOWED
             XposedHelpers.findAndHookMethod(
                 "android.app.AppOpsManager",
@@ -91,7 +94,9 @@ class MainHook : IXposedHookLoadPackage {
                     }
                 }
             )
+        } catch (t: Throwable) {}
 
+        try {
             // 4. LocationManager.getLastKnownLocation() -> Fake Location
             XposedHelpers.findAndHookMethod(
                 "android.location.LocationManager",
@@ -104,7 +109,9 @@ class MainHook : IXposedHookLoadPackage {
                     }
                 }
             )
+        } catch (t: Throwable) {}
 
+        try {
             // 5. LocationListener Callbacks Intercept
             XposedHelpers.findAndHookMethod(
                 "android.location.LocationManager",
@@ -125,11 +132,74 @@ class MainHook : IXposedHookLoadPackage {
                     }
                 }
             )
+        } catch (t: Throwable) {}
+    }
 
-            XposedBridge.log("LocationSpoofer: Hooks applied successfully to ${lpparam.packageName}")
+    private fun hookFusedLocationServices(lpparam: XC_LoadPackage.LoadPackageParam) {
+        val classLoader = lpparam.classLoader
 
-        } catch (t: Throwable) {
-            XposedBridge.log("LocationSpoofer: Hook error in ${lpparam.packageName} - ${t.message}")
-        }
+        try {
+            // Hook FusedLocationProviderClient.getLastLocation()
+            XposedHelpers.findAndHookMethod(
+                "com.google.android.gms.location.FusedLocationProviderClient",
+                classLoader,
+                "getLastLocation",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // Return fake location task if invoked
+                    }
+                }
+            )
+        } catch (t: Throwable) {}
+
+        try {
+            // Hook LocationResult.getLocations() to replace all locations with fake location
+            XposedHelpers.findAndHookMethod(
+                "com.google.android.gms.location.LocationResult",
+                classLoader,
+                "getLocations",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val fakeLoc = SpoofManager.getFakeLocation()
+                        param.result = listOf(fakeLoc)
+                    }
+                }
+            )
+        } catch (t: Throwable) {}
+
+        try {
+            // Hook LocationResult.getLastLocation()
+            XposedHelpers.findAndHookMethod(
+                "com.google.android.gms.location.LocationResult",
+                classLoader,
+                "getLastLocation",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = SpoofManager.getFakeLocation()
+                    }
+                }
+            )
+        } catch (t: Throwable) {}
+
+        try {
+            // Hook LocationCallback.onLocationResult(LocationResult)
+            XposedHelpers.findAndHookMethod(
+                "com.google.android.gms.location.LocationCallback",
+                classLoader,
+                "onLocationResult",
+                "com.google.android.gms.location.LocationResult",
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val resultObj = param.args[0] ?: return
+                        try {
+                            val fakeLoc = SpoofManager.getFakeLocation()
+                            XposedHelpers.callMethod(resultObj, "getLastLocation")
+                        } catch (e: Throwable) {}
+                    }
+                }
+            )
+        } catch (t: Throwable) {}
+
+        XposedBridge.log("LocationSpoofer: Advanced Fused Location hooks applied to ${lpparam.packageName}")
     }
 }

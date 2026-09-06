@@ -1,25 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF3B82F6</color>
+    <color name="purple_500">#FF2563EB</color>
     <color name="purple_700">#FF1D4ED8</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- LocationSpoofer Mockup Palette -->
-    <color name="app_bg">#F8FAFC</color>
+
+    <!-- Exact Reference Palette from Screenshots -->
+    <color name="header_gradient_start">#2563EB</color>
+    <color name="header_gradient_end">#7C3AED</color>
+
+    <color name="app_bg">#F4F6FC</color>
     <color name="card_bg">#FFFFFF</color>
-    <color name="card_stroke">#E2E8F0</color>
-    <color name="primary_blue">#4338CA</color>
-    <color name="primary_blue_dark">#3730A3</color>
-    <color name="green_start">#10B981</color>
-    <color name="red_stop">#EF4444</color>
-    <color name="blue_save">#3B82F6</color>
-    <color name="input_bg">#F1F5F9</color>
+    <color name="card_stroke">#E5E7EB</color>
+
+    <color name="telemetry_bg_start">#3B82F6</color>
+    <color name="telemetry_bg_end">#6366F1</color>
+    <color name="telemetry_box_bg">#4338CA</color>
+    <color name="telemetry_address_bg">#4C1D95</color>
+
+    <color name="banner_green_bg">#10B981</color>
+    <color name="banner_green_text">#FFFFFF</color>
+
+    <color name="primary_blue">#2563EB</color>
+    <color name="btn_start_green">#10B981</color>
+    <color name="btn_stop_red">#EF4444</color>
+    <color name="btn_password_purple">#7C3AED</color>
+    <color name="btn_logout_orange">#F97316</color>
+
+    <color name="badge_vip_bg">#D1FAE5</color>
+    <color name="badge_vip_text">#059669</color>
+    <color name="badge_mock_bg">#EFF6FF</color>
+    <color name="badge_mock_text">#2563EB</color>
+
     <color name="text_dark">#0F172A</color>
     <color name="text_muted">#64748B</color>
-    <color name="connected_badge">#D1FAE5</color>
-    <color name="connected_text">#059669</color>
 </resources>

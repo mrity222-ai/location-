@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8FAFC"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Top Curved Gradient Header Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="170dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/shape_top_header_curved" />
+
+            <!-- Header Content Row -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:paddingHorizontal="20dp">
+
+                <!-- Left App Icon + Text -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Paper Plane / App Logo Circle Badge -->
+                    <RelativeLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/shape_avatar_circle">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_centerInParent="true"
+                            android:contentDescription="Logo Icon"
+                            android:src="@drawable/app_logo" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="location sofi"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Right Help Button -->
+                <RelativeLayout
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/shape_avatar_circle">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="?"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+        <!-- Floating Green Android Badge Overlapping Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false">
+
+            <RelativeLayout
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="-36dp"
+                android:background="@drawable/shape_green_android_badge"
+                android:elevation="6dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_centerInParent="true"
+                    android:contentDescription="Android Logo"
+                    android:src="@drawable/ic_android_white" />
+            </RelativeLayout>
+        </RelativeLayout>
+
+        <!-- Main Body Content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="24dp">
+
+            <!-- Title & Subtitle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Welcome Back"
+                android:textColor="#0F172A"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Sign in to continue to LocationSofi"
+                android:textColor="#64748B"
+                android:textSize="14sp" />
+
+            <!-- Login Card Container -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Tab Switcher (Password vs OTP) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:background="@drawable/shape_card_rounded"
+                        android:orientation="horizontal"
+                        android:padding="4dp">
+
+                        <Button
+                            android:id="@+id/btnTabPassword"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/shape_tab_active_pill"
+                            android:backgroundTint="@null"
+                            android:text="Password Login"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null"
+                            app:cornerRadius="16dp" />
+
+                        <Button
+                            android:id="@+id/btnTabOtp"
+                            style="?android:attr/borderlessButtonStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Email OTP Login"
+                            android:textAllCaps="false"
+                            android:textColor="#64748B"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- PASSWORD LOGIN FORM -->
+                    <LinearLayout
+                        android:id="@+id/layoutPasswordForm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Email Address"
+                            android:textColor="#0F172A"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/etPassEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/shape_input_rounded"
+                            android:hint="user@example.com"
+                            android:inputType="textEmailAddress"
+                            android:paddingHorizontal="16dp"
+                            android:textColor="#0F172A"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="Password"
+                            android:textColor="#0F172A"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="6dp">
+
+                            <EditText
+                                android:id="@+id/etPassPassword"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/shape_input_rounded"
+                                android:hint="••••••••••••••••"
+                                android:inputType="textPassword"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="46dp"
+                                android:textColor="#0F172A"
+                                android:textSize="14sp" />
+
+                            <ImageView
+                                android:id="@+id/btnTogglePassword"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="14dp"
+                                android:contentDescription="Toggle Password"
+                                android:src="@drawable/ic_eye_password"
+                                app:tint="#64748B" />
+                        </RelativeLayout>
+
+                        <!-- Remember Me & Forgot Password Row -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp">
+
+                            <CheckBox
+                                android:id="@+id/cbRememberMe"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:checked="true"
+                                android:text="Remember Me"
+                                android:textColor="#475569"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tvForgotPassword"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="Forgot Password?"
+                                android:textColor="#2563EB"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <Button
+                            android:id="@+id/btnLoginPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="20dp"
+                            android:background="@drawable/shape_btn_primary_gradient"
+                            android:backgroundTint="@null"
+                            android:text="Sign In"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null"
+                            app:cornerRadius="26dp" />
+                    </LinearLayout>
+
+                    <!-- OTP LOGIN FORM -->
+                    <LinearLayout
+                        android:id="@+id/layoutOtpForm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Email Address"
+                            android:textColor="#0F172A"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/etOtpEmail"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/shape_input_rounded"
+                                android:hint="user@example.com"
+                                android:inputType="textEmailAddress"
+                                android:paddingHorizontal="16dp"
+                                android:textColor="#0F172A"
+                                android:textSize="14sp" />
+
+                            <Button
+                                android:id="@+id/btnSendOtp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="50dp"
+                                android:layout_marginStart="10dp"
+                                android:background="@drawable/shape_tab_active_pill"
+                                android:backgroundTint="@null"
+                                android:paddingHorizontal="16dp"
+                                android:text="Send OTP"
+                                android:textAllCaps="false"
+                                android:textColor="#FFFFFF"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                app:backgroundTint="@null"
+                                app:cornerRadius="25dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="Six-Digit OTP"
+                            android:textColor="#0F172A"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/etOtpCode"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/shape_input_rounded"
+                            android:gravity="center"
+                            android:hint="123456"
+                            android:inputType="number"
+                            android:letterSpacing="0.3"
+                            android:maxLength="6"
+                            android:paddingHorizontal="16dp"
+                            android:textColor="#0F172A"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <!-- Timer & Resend OTP Row -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp">
+
+                            <TextView
+                                android:id="@+id/tvOtpTimer"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:text="OTP expires in: 60s"
+                                android:textColor="#64748B"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tvResendOtp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:text="Resend OTP"
+                                android:textColor="#2563EB"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                        <Button
+                            android:id="@+id/btnLoginOtp"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="20dp"
+                            android:background="@drawable/shape_btn_verify_green"
+                            android:backgroundTint="@null"
+                            android:text="Verify &amp; Sign In"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null"
+                            app:cornerRadius="26dp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- REGISTER LINK FOOTER -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Don't have an account? "
+                    android:textColor="#64748B"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvGoRegister"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Register Now"
+                    android:textColor="#2563EB"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -62,18 +62,22 @@ function broadcastToDevice(hwid, type, data) {
 // Swagger OpenAPI Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// SMTP Configuration
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || '';
-const SMTP_FROM = process.env.SMTP_FROM || 'LocationSpoofer Admin <no-reply@locationsofi.com>';
+// SMTP Configuration (Supports Hostinger, Gmail, custom SMTP)
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.hostinger.com';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465');
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_USERNAME || 'info@avedatechnologies.com';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || 'Jaymatadi@122';
+const SMTP_FROM = process.env.SMTP_FROM || process.env.SMTP_FROM_EMAIL || 'LocNova Admin <info@avedatechnologies.com>';
+const SMTP_SECURE = process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : (SMTP_PORT === 465);
 
 const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: (SMTP_USER && SMTP_PASS) ? { user: SMTP_USER, pass: SMTP_PASS } : undefined
+    secure: SMTP_SECURE,
+    auth: (SMTP_USER && SMTP_PASS) ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    tls: {
+        rejectUnauthorized: false
+    }
 });
 
 // --- RATE LIMITERS ---
@@ -87,7 +91,7 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 10,
+    limit: 100,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     message: { error: 'Too many login attempts. Please try again after 15 minutes.' }
@@ -106,71 +110,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database setup
-const db = new sqlite3.Database(path.join(__dirname, 'vps_license.db'), (err) => {
-    if (err) {
-        console.error('Failed to open database:', err.message);
-    } else {
-        console.log('Connected to SQLite database.');
-        initDb();
-    }
-});
+const db = require('./db');
 
-function initDb() {
-    db.serialize(() => {
-        db.run(`
-            CREATE TABLE IF NOT EXISTS admins (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE,
-                password_hash TEXT NOT NULL,
-                reset_token TEXT NULL,
-                reset_token_expiry DATETIME NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS devices (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                hwid TEXT UNIQUE NOT NULL,
-                user_tag TEXT DEFAULT 'New User',
-                status TEXT DEFAULT 'PENDING',
-                expiry_date DATETIME NULL,
-                remote_lat REAL NULL,
-                remote_lng REAL NULL,
-                last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        db.run(`
-            CREATE TABLE IF NOT EXISTS activity_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                action TEXT NOT NULL,
-                details TEXT,
-                admin_username TEXT,
-                ip_address TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        db.run(`
-            CREATE TABLE IF NOT EXISTS system_settings (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )
-        `);
-
-        // Insert default admin: admin / admin123
-        const defaultHash = bcrypt.hashSync('admin123', 10);
-        db.run(
-            `INSERT OR IGNORE INTO admins (id, username, email, password_hash) VALUES (1, 'admin', 'admin@locationsofi.com', ?)`,
-            [defaultHash]
-        );
-        db.run(`UPDATE admins SET email = 'admin@locationsofi.com' WHERE username = 'admin' AND (email IS NULL OR email = '')`);
-    });
-}
 
 function logActivity(action, details, adminUsername = 'System', ipAddress = '') {
     db.run(
@@ -249,6 +191,207 @@ app.post('/api/device/check-status', deviceCheckLimiter, (req, res) => {
 });
 
 // --- ADMIN APIS & AUTHENTICATION ---
+
+// --- USER AUTHENTICATION APIS (ANDROID APP) ---
+
+// 1. User Registration (Name, Email, Password)
+app.post('/api/user/register', (req, res) => {
+    const { name, email, password, hwid } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Name, Email, and Password are required' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+    const hash = bcrypt.hashSync(password, 10);
+
+    db.get(`SELECT id FROM users WHERE email = ?`, [emailClean], (err, existing) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (existing) {
+            return res.status(400).json({ error: 'An account with this Email ID already exists. Please login.' });
+        }
+
+        db.run(
+            `INSERT INTO users (name, email, password_hash, hwid) VALUES (?, ?, ?, ?)`,
+            [name.trim(), emailClean, hash, hwid || null],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+
+                // Also auto-register or update device in devices table
+                if (hwid) {
+                    db.run(
+                        `INSERT OR IGNORE INTO devices (hwid, user_tag, status) VALUES (?, ?, 'PENDING')`,
+                        [hwid, name.trim()]
+                    );
+                    db.run(`UPDATE devices SET user_tag = ? WHERE hwid = ?`, [name.trim(), hwid]);
+                }
+
+                logActivity('USER_REGISTERED', `New user registered: ${name.trim()} (${emailClean})`, name.trim(), req.ip);
+
+                const token = jwt.sign({ id: this.lastID, email: emailClean, name: name.trim() }, JWT_SECRET, { expiresIn: '30d' });
+                res.json({
+                    message: 'Registration successful',
+                    token,
+                    user: { name: name.trim(), email: emailClean, hwid: hwid || null }
+                });
+            }
+        );
+    });
+});
+
+// 2. User Login with Password
+app.post('/api/user/login-password', authLimiter, (req, res) => {
+    const { email, password, hwid } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and Password are required' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+    db.get(`SELECT * FROM users WHERE email = ?`, [emailClean], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+            logActivity('USER_LOGIN_FAILED', `Failed login attempt for: ${emailClean}`, 'Unknown', req.ip);
+            return res.status(401).json({ error: 'Invalid Email ID or Password' });
+        }
+
+        if (hwid) {
+            db.run(`UPDATE users SET hwid = ? WHERE id = ?`, [hwid, user.id]);
+            db.run(`INSERT OR IGNORE INTO devices (hwid, user_tag, status) VALUES (?, ?, 'PENDING')`, [hwid, user.name]);
+        }
+
+        logActivity('USER_LOGIN_SUCCESS', `User logged in (Password): ${user.name} (${user.email})`, user.name, req.ip);
+        const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '30d' });
+
+        res.json({
+            message: 'Login successful',
+            token,
+            user: { name: user.name, email: user.email, hwid: hwid || user.hwid }
+        });
+    });
+});
+
+// 3. Send OTP to User Email
+app.post('/api/user/send-otp', authLimiter, (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email ID is required' });
+
+    const emailClean = email.trim().toLowerCase();
+    db.get(`SELECT * FROM users WHERE email = ?`, [emailClean], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) {
+            return res.status(404).json({ error: 'No account found with this Email ID. Please register first.' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+
+        db.run(
+            `UPDATE users SET otp_code = ?, otp_expiry = ? WHERE id = ?`,
+            [otp, expiry, user.id],
+            async function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+
+                logActivity('OTP_GENERATED', `OTP generated for user ${user.email}`, user.name, req.ip);
+
+                const mailOptions = {
+                    from: SMTP_FROM,
+                    to: user.email,
+                    subject: '🔐 LocNova - Your Login OTP Code',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; background: #f4f6fc; padding: 24px; border-radius: 12px;">
+                            <h2 style="color: #2563eb;">LocNova (LocationSpoofer) Login OTP</h2>
+                            <p>Hello <strong>${user.name}</strong>,</p>
+                            <p>Your One-Time Password (OTP) for logging into the app is:</p>
+                            <div style="margin: 20px 0; background: #ffffff; padding: 16px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2563eb; text-align: center; border: 2px dashed #93c5fd;">
+                                ${otp}
+                            </div>
+                            <p>This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
+                        </div>
+                    `
+                };
+
+                try {
+                    if (SMTP_USER && SMTP_PASS) {
+                        await transporter.sendMail(mailOptions);
+                    }
+                    res.json({ message: 'OTP sent to your email ID', otp: (SMTP_USER ? undefined : otp) });
+                } catch (mailErr) {
+                    res.json({ message: 'OTP generated. Check email or use response OTP:', otp });
+                }
+            }
+        );
+    });
+});
+
+// 4. Verify OTP & Login
+app.post('/api/user/login-otp', authLimiter, (req, res) => {
+    const { email, otp, hwid } = req.body;
+    if (!email || !otp) {
+        return res.status(400).json({ error: 'Email ID and OTP code are required' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+    db.get(`SELECT * FROM users WHERE email = ?`, [emailClean], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(404).json({ error: 'No account found with this Email ID' });
+
+        if (!user.otp_code || user.otp_code !== otp.trim()) {
+            return res.status(401).json({ error: 'Invalid OTP code. Please try again.' });
+        }
+
+        if (user.otp_expiry) {
+            const expiryTime = new Date(user.otp_expiry).getTime();
+            if (Date.now() > expiryTime) {
+                return res.status(401).json({ error: 'OTP has expired. Please request a new OTP.' });
+            }
+        }
+
+        // Clear OTP after successful login
+        db.run(`UPDATE users SET otp_code = NULL, otp_expiry = NULL, hwid = COALESCE(?, hwid) WHERE id = ?`, [hwid, user.id]);
+
+        if (hwid) {
+            db.run(`INSERT OR IGNORE INTO devices (hwid, user_tag, status) VALUES (?, ?, 'PENDING')`, [hwid, user.name]);
+        }
+
+        logActivity('USER_LOGIN_SUCCESS', `User logged in (OTP): ${user.name} (${user.email})`, user.name, req.ip);
+        const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '30d' });
+
+        res.json({
+            message: 'OTP Verification successful! Logged in.',
+            token,
+            user: { name: user.name, email: user.email, hwid: hwid || user.hwid }
+        });
+    });
+});
+
+// User Change Password Endpoint
+app.post('/api/user/change-password', authLimiter, (req, res) => {
+    const { email, current_password, new_password } = req.body;
+    if (!email || !current_password || !new_password) {
+        return res.status(400).json({ error: 'Email, current password, and new password are required' });
+    }
+
+    if (new_password.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+    db.get(`SELECT * FROM users WHERE email = ?`, [emailClean], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(404).json({ error: 'User account not found' });
+
+        const isMatch = bcrypt.compareSync(current_password, user.password_hash);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Incorrect current password' });
+        }
+
+        const newHash = bcrypt.hashSync(new_password, 10);
+        db.run(`UPDATE users SET password_hash = ? WHERE id = ?`, [newHash, user.id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            logActivity('USER_PASSWORD_CHANGED', `User ${user.name} (${user.email}) changed password`, user.name, req.ip);
+            res.json({ message: 'Password updated successfully!' });
+        });
+    });
+});
 
 // Admin Login
 app.post('/api/admin/login', authLimiter, (req, res) => {
@@ -362,9 +505,14 @@ app.get('/api/admin/stats', authenticateAdmin, (req, res) => {
     });
 });
 
-// Get All Devices List
+// Get All Devices & Registered Users List
 app.get('/api/admin/devices', authenticateAdmin, (req, res) => {
-    db.all(`SELECT * FROM devices ORDER BY created_at DESC`, [], (err, rows) => {
+    db.all(`
+        SELECT devices.*, users.email as user_email, users.name as registered_name 
+        FROM devices 
+        LEFT JOIN users ON devices.hwid = users.hwid 
+        ORDER BY devices.created_at DESC
+    `, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
@@ -390,15 +538,24 @@ app.post('/api/admin/device/update-status', authenticateAdmin, (req, res) => {
             [status, user_tag, expiry_date || null, id],
             function(err) {
                 if (err) return res.status(500).json({ error: err.message });
-                logActivity(
-                    'DEVICE_STATUS_UPDATED',
-                    `Device #${id} (${hwid}) status set to ${status}${user_tag ? ' (Tag: ' + user_tag + ')' : ''}`,
-                    req.user.username,
-                    req.ip
-                );
-                // Broadcast to WebSocket client if connected
-                broadcastToDevice(hwid, 'STATUS_UPDATE', { status, expiry_date });
-                res.json({ message: 'Device updated successfully' });
+                
+                const finish = () => {
+                    logActivity(
+                        'DEVICE_STATUS_UPDATED',
+                        `Device #${id} (${hwid}) status set to ${status}${user_tag ? ' (Tag: ' + user_tag + ')' : ''}`,
+                        req.user.username,
+                        req.ip
+                    );
+                    // Broadcast to WebSocket client if connected
+                    broadcastToDevice(hwid, 'STATUS_UPDATE', { status, expiry_date });
+                    res.json({ message: 'Device updated successfully' });
+                };
+
+                if (user_tag && hwid) {
+                    db.run(`UPDATE users SET name = ? WHERE hwid = ?`, [user_tag, hwid], finish);
+                } else {
+                    finish();
+                }
             }
         );
     });

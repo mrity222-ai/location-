@@ -78,13 +78,19 @@ if [ ! -f "$SERVER_DIR/.env" ]; then
 PORT=3000
 JWT_SECRET=$JWT_SECRET
 ADMIN_PASSWORD=admin123
+DB_TYPE=sqlite
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=vps_license
 SMTP_HOST=smtp.gmail.com
-SMTP_PORT=586
+SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 SMTP_FROM=
 EOF
-    echo -e "${YELLOW}⚠️ Created initial .env file. Default Admin Password: admin123${NC}"
+    echo -e "${YELLOW}⚠️ Created initial .env file. Default Database: SQLite (Change DB_TYPE=mysql for MySQL).${NC}"
 fi
 
 echo -e "\n${GREEN}[4/6] ⚡ Starting Application with PM2...${NC}"

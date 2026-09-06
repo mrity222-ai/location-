@@ -142,6 +142,7 @@ async function loadDevices() {
         });
         if (res.status === 401 || res.status === 403) return logout();
         const devices = await res.json();
+        allDashboardDevices = devices;
         const top10Devices = devices.slice(0, 10);
 
         const tbody = document.getElementById('deviceTableBody');
@@ -154,21 +155,33 @@ async function loadDevices() {
             const expiry = d.expiry_date ? new Date(d.expiry_date).toLocaleString() : 'Lifetime';
             const location = (d.remote_lat && d.remote_lng) ? `${d.remote_lat.toFixed(4)}, ${d.remote_lng.toFixed(4)}` : '<span class="text-muted">Default</span>';
             const lastSeen = d.last_seen ? new Date(d.last_seen).toLocaleTimeString() : 'N/A';
+            const displayName = d.registered_name || d.user_tag || 'Registered User';
+            const displayEmail = d.user_email ? `<br><small class="text-primary fw-semibold">✉️ ${escapeHtml(d.user_email)}</small>` : '';
+
+            const approveBtn = `<button class="btn-act btn-act-approve me-1" onclick="quickUpdateStatus(${d.id}, 'APPROVED')">🟢 Approve</button>`;
+            const blockBtn = d.status === 'BLOCKED' 
+                ? `<button class="btn-act btn-act-approve me-1" onclick="quickUpdateStatus(${d.id}, 'APPROVED')">🟢 Unblock</button>`
+                : `<button class="btn-act btn-act-block me-1" onclick="quickUpdateStatus(${d.id}, 'BLOCKED')">🔴 Block</button>`;
 
             return `
                 <tr>
                     <td>${index + 1}</td>
-                    <td class="fw-bold text-dark">${escapeHtml(d.user_tag || 'New Device')}</td>
+                    <td>
+                        <a href="javascript:void(0)" onclick="openUserBiodataPanel(${d.id})" class="text-decoration-none">
+                            <div class="fw-bold text-primary">${escapeHtml(displayName)} ↗</div>
+                            ${displayEmail}
+                        </a>
+                    </td>
                     <td><code class="hwid-code">${escapeHtml(d.hwid)}</code></td>
                     <td><span class="badge-pill badge-${d.status}">${d.status}</span></td>
                     <td><small class="text-secondary">${expiry}</small></td>
                     <td><small class="text-secondary">${location}</small></td>
                     <td><small class="text-muted">${lastSeen}</small></td>
                     <td>
-                        <button class="btn-act btn-act-edit me-1" onclick="openEditModal(${d.id}, '${escapeJs(d.user_tag)}', '${d.status}', '${d.expiry_date || ''}')">Edit</button>
-                        <button class="btn-act btn-act-approve me-1" onclick="quickUpdateStatus(${d.id}, 'APPROVED')">Approve</button>
-                        <button class="btn-act btn-act-block me-1" onclick="quickUpdateStatus(${d.id}, 'BLOCKED')">Block</button>
-                        <button class="btn-act btn-act-loc" onclick="openLocationModal(${d.id}, ${d.remote_lat || 'null'}, ${d.remote_lng || 'null'})">Location</button>
+                        ${approveBtn}
+                        <button class="btn-act btn-act-edit me-1" onclick="openEditModal(${d.id}, '${escapeJs(displayName)}', '${d.status}', '${d.expiry_date || ''}')">✏️ Edit</button>
+                        ${blockBtn}
+                        <button class="btn-act btn-act-loc" onclick="openLocationModal(${d.id}, ${d.remote_lat || 'null'}, ${d.remote_lng || 'null'})">🛰️ Location</button>
                     </td>
                 </tr>
             `;
@@ -176,6 +189,75 @@ async function loadDevices() {
     } catch (e) {
         console.error(e);
     }
+}
+
+let allDashboardDevices = [];
+let activeDashboardOffcanvas = null;
+
+function openUserBiodataPanel(id) {
+    const d = allDashboardDevices.find(dev => dev.id === id);
+    if (!d) return;
+
+    const displayName = d.registered_name || d.user_tag || 'Registered User';
+    const displayEmail = d.user_email || 'No Email Registered';
+
+    document.getElementById('offcanvasUserName').innerText = displayName;
+    document.getElementById('offcanvasUserEmail').innerText = displayEmail;
+    document.getElementById('offcanvasUserAvatar').innerText = displayName.charAt(0).toUpperCase();
+
+    const badgeEl = document.getElementById('offcanvasStatusBadge');
+    badgeEl.className = `badge-pill badge-${d.status}`;
+    badgeEl.innerText = d.status;
+
+    document.getElementById('offcanvasHwid').innerText = d.hwid || 'N/A';
+    document.getElementById('offcanvasCreatedAt').innerText = d.created_at ? new Date(d.created_at).toLocaleDateString() : 'N/A';
+    document.getElementById('offcanvasLastSeen').innerText = d.last_seen ? new Date(d.last_seen).toLocaleString() : 'N/A';
+    document.getElementById('offcanvasExpiry').innerText = d.expiry_date ? new Date(d.expiry_date).toLocaleString() : 'Lifetime Access';
+    
+    const locText = (d.remote_lat && d.remote_lng) ? `Lat: ${d.remote_lat.toFixed(5)}, Lng: ${d.remote_lng.toFixed(5)}` : 'Default Hardware GPS';
+    document.getElementById('offcanvasLocation').innerText = locText;
+
+    const actionContainer = document.getElementById('offcanvasActionButtons');
+    actionContainer.innerHTML = `
+        <button class="btn btn-success fw-bold rounded-3 py-2 mb-1" onclick="offcanvasActionApprove(${d.id})">🟢 Approve License Access</button>
+        <button class="btn btn-outline-primary fw-bold rounded-3 py-2 mb-1" onclick="offcanvasActionEdit(${d.id}, '${escapeJs(displayName)}', '${d.status}', '${d.expiry_date || ''}')">✏️ Edit Details & Expiry</button>
+        <button class="btn btn-outline-info fw-bold rounded-3 py-2 mb-1" onclick="offcanvasActionLocation(${d.id}, ${d.remote_lat || 'null'}, ${d.remote_lng || 'null'})">🛰️ Set Remote Mock Location</button>
+        ${d.status === 'BLOCKED' 
+            ? `<button class="btn btn-success fw-bold rounded-3 py-2" onclick="offcanvasActionApprove(${d.id})">🟢 Unblock User</button>`
+            : `<button class="btn btn-danger fw-bold rounded-3 py-2" onclick="offcanvasActionBlock(${d.id})">🔴 Block User Access</button>`
+        }
+    `;
+
+    if (!activeDashboardOffcanvas) {
+        activeDashboardOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('userProfileOffcanvas'));
+    }
+    activeDashboardOffcanvas.show();
+}
+
+function hideDashboardOffcanvas() {
+    if (activeDashboardOffcanvas) {
+        activeDashboardOffcanvas.hide();
+    }
+}
+
+function offcanvasActionApprove(id) {
+    hideDashboardOffcanvas();
+    quickUpdateStatus(id, 'APPROVED');
+}
+
+function offcanvasActionBlock(id) {
+    hideDashboardOffcanvas();
+    quickUpdateStatus(id, 'BLOCKED');
+}
+
+function offcanvasActionEdit(id, tag, status, expiry) {
+    hideDashboardOffcanvas();
+    openEditModal(id, tag, status, expiry);
+}
+
+function offcanvasActionLocation(id, lat, lng) {
+    hideDashboardOffcanvas();
+    openLocationModal(id, lat, lng);
 }
 
 async function loadLogs() {
