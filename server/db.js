@@ -42,6 +42,16 @@ function normalizeSql(sql) {
     return sql;
 }
 
+function normalizeParams(params) {
+    if (!Array.isArray(params)) return params;
+    return params.map(p => {
+        if (typeof p === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(p)) {
+            return p.slice(0, 19).replace('T', ' ');
+        }
+        return p;
+    });
+}
+
 const db = {
     type: DB_TYPE,
     
@@ -51,15 +61,16 @@ const db = {
             params = [];
         }
         const querySql = normalizeSql(sql);
+        const cleanParams = normalizeParams(params);
 
         if (DB_TYPE === 'mysql') {
-            mysqlPool.query(querySql, params, (err, results) => {
+            mysqlPool.query(querySql, cleanParams, (err, results) => {
                 if (err) return callback(err);
                 const row = results && results.length > 0 ? results[0] : null;
                 callback(null, row);
             });
         } else {
-            sqliteDb.get(querySql, params, callback);
+            sqliteDb.get(querySql, cleanParams, callback);
         }
     },
 
@@ -69,14 +80,15 @@ const db = {
             params = [];
         }
         const querySql = normalizeSql(sql);
+        const cleanParams = normalizeParams(params);
 
         if (DB_TYPE === 'mysql') {
-            mysqlPool.query(querySql, params, (err, results) => {
+            mysqlPool.query(querySql, cleanParams, (err, results) => {
                 if (err) return callback(err);
                 callback(null, results || []);
             });
         } else {
-            sqliteDb.all(querySql, params, callback);
+            sqliteDb.all(querySql, cleanParams, callback);
         }
     },
 
@@ -86,9 +98,10 @@ const db = {
             params = [];
         }
         const querySql = normalizeSql(sql);
+        const cleanParams = normalizeParams(params);
 
         if (DB_TYPE === 'mysql') {
-            mysqlPool.query(querySql, params, function (err, results) {
+            mysqlPool.query(querySql, cleanParams, function (err, results) {
                 if (err) {
                     if (callback) callback(err);
                     return;
@@ -100,7 +113,7 @@ const db = {
                 if (callback) callback.call(context, null);
             });
         } else {
-            sqliteDb.run(querySql, params, function (err) {
+            sqliteDb.run(querySql, cleanParams, function (err) {
                 if (callback) callback.call(this, err);
             });
         }

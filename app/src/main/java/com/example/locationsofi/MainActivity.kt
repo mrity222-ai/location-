@@ -184,6 +184,16 @@ class MainActivity : AppCompatActivity() {
         tvRecentCoords.text = "$initialLat, $initialLng"
         processLocationAndStartSpoofing(initialLat, initialLng, autoStart = true)
 
+        val btnAutoSetupRoot = findViewById<Button>(R.id.btnAutoSetupRoot)
+        btnAutoSetupRoot?.setOnClickListener {
+            Toast.makeText(this, "⚡ Requesting Root Superuser Access...", Toast.LENGTH_SHORT).show()
+            RootHelper.performAutoSetup(this) { success, msg ->
+                runOnUiThread {
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
         if (RootHelper.isRootAvailable()) {
             RootHelper.performAutoSetup(this)
         }
